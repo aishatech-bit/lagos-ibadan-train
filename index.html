@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lagos–Ibadan Express — Choose your seat</title>
+<meta name="description" content="Pick your departure, class and exact seat, preview the window view, and get your boarding pass.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Jost:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#04100a;--g:#34e27a;--g2:#0e7a43;--mute:rgba(255,255,255,.62);--line:rgba(255,255,255,.14);--disp:"Bebas Neue",Impact,sans-serif;--sans:"Jost",system-ui,sans-serif;--mono:"JetBrains Mono",monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}body{font-family:var(--sans);color:#fff;background:var(--ink);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+.bg{position:fixed;inset:0;z-index:0}
+.bg img,.bg video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s,transform 12s linear;transform:scale(1.04)}
+.bg .on{opacity:1;transform:scale(1.12)}
+.bg::after{content:"";position:absolute;inset:0;background:radial-gradient(90% 70% at 30% 60%,rgba(2,12,7,.35),rgba(2,12,7,.85)),linear-gradient(0deg,rgba(2,10,6,.7),transparent 40%)}
+header{position:fixed;z-index:10;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:calc(.9rem + env(safe-area-inset-top,0px)) clamp(1rem,4vw,2.6rem) .9rem}
+.logo{font:400 1.45rem var(--disp);letter-spacing:.16em;display:flex;gap:.6rem;align-items:center}.logo i{width:.7rem;height:.7rem;border-radius:50%;background:var(--g);box-shadow:0 0 18px var(--g)}
+.steps{display:flex;gap:.45rem}.steps button{width:2.2rem;height:4px;background:rgba(255,255,255,.22);border-radius:2px;transition:.4s}.steps button.on{background:var(--g);box-shadow:0 0 12px var(--g)}.steps button.ok{background:rgba(52,226,122,.55)}.steps button:disabled{cursor:default}
+main{position:fixed;inset:0;z-index:5;display:grid;align-items:end;padding:clamp(5rem,12vh,7rem) clamp(1rem,4vw,2.6rem) calc(clamp(1rem,4vh,2.4rem) + env(safe-area-inset-bottom,0px));overflow:auto}
+.pane{display:none;width:100%;max-width:1180px;margin:auto auto 0 0;animation:in .8s both}.pane.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(24px)}}
+.k{font:500 .68rem var(--mono);letter-spacing:.28em;color:var(--g);text-transform:uppercase;margin-bottom:.8rem}
+h1,h2{font:400 clamp(3.6rem,13vw,10.5rem)/.86 var(--disp);letter-spacing:.005em}h2{font-size:clamp(2.8rem,8vw,6rem)}
+h1 em,h2 em{font-style:normal;color:var(--g)}
+.lead{margin-top:1.2rem;color:var(--mute);max-width:34rem;line-height:1.65;font-weight:300}
+.btn{display:inline-block;background:var(--g);color:#032312;padding:1.1rem 2.2rem;font:600 .76rem var(--sans);letter-spacing:.26em;text-transform:uppercase;transition:.3s}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 12px 40px rgba(52,226,122,.4)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.ghost{border:1px solid var(--line);padding:1.05rem 1.6rem;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase}
+.bar{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center;margin-top:1.8rem}
+.glass{background:rgba(6,20,13,.58);backdrop-filter:blur(16px);border:1px solid var(--line)}
+.hero-f{display:flex;gap:1rem;flex-wrap:wrap;align-items:end;margin-top:2rem}
+.hero-f label,.fld{display:grid;gap:.35rem;font:500 .6rem var(--mono);letter-spacing:.22em;color:var(--mute);text-transform:uppercase}
+input{background:rgba(0,0,0,.35);border:1px solid var(--line);color:#fff;padding:.9rem 1rem;font:400 1rem var(--sans);outline:none;color-scheme:dark;min-width:12rem}input:focus{border-color:var(--g)}
+.route{font:400 1.5rem var(--disp);letter-spacing:.12em;padding:.7rem 1rem;border:1px solid var(--line)}
+.list{display:grid;gap:.7rem;margin-top:1.6rem;max-width:760px}
+.dep{display:grid;grid-template-columns:5.5rem 1fr auto;gap:1rem;align-items:center;text-align:left;padding:1.1rem 1.3rem;transition:.25s}
+.dep:hover,.dep.sel{border-color:var(--g);background:rgba(52,226,122,.1)}
+.dep b{font:400 2.2rem var(--disp);letter-spacing:.06em}.dep small{display:block;color:var(--mute);font-weight:300}.dep span{font:500 .7rem var(--mono);color:var(--g);letter-spacing:.14em}
+.cls{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.6rem;max-width:1000px}
+@media(max-width:760px){.cls{grid-template-columns:1fr}.dep{grid-template-columns:4.2rem 1fr auto}}
+.cc{overflow:hidden;text-align:left;transition:.3s;display:block}.cc:hover,.cc.sel{border-color:var(--g);transform:translateY(-4px)}.cc.sel{box-shadow:0 0 0 1px var(--g),0 20px 50px rgba(52,226,122,.18)}
+.cc img{width:100%;height:150px;object-fit:cover;display:block}.cc div{padding:1rem 1.2rem 1.3rem}.cc h3{font:400 2rem var(--disp);letter-spacing:.06em}.cc p{color:var(--mute);font-weight:300;font-size:.9rem;margin:.3rem 0 .8rem;line-height:1.5}.cc span{font:500 .8rem var(--mono);color:var(--g)}
+.seatwrap{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(250px,1fr);gap:1.4rem;margin-top:1.4rem;align-items:start}
+@media(max-width:860px){.seatwrap{grid-template-columns:1fr}}
+.coaches{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}.coaches button{padding:.55rem 1rem;border:1px solid var(--line);font:500 .72rem var(--mono);letter-spacing:.12em}.coaches button.on{background:var(--g);color:#032312;border-color:var(--g)}
+.map{padding:1rem;overflow:auto;max-height:52vh}
+.map svg{display:block;margin:auto;min-width:300px}
+.seat{cursor:pointer;transition:.2s}.seat rect{fill:rgba(52,226,122,.14);stroke:rgba(52,226,122,.7);stroke-width:1.2}.seat:hover rect{fill:rgba(52,226,122,.4)}
+.seat.t{cursor:not-allowed}.seat.t rect{fill:rgba(255,255,255,.07);stroke:rgba(255,255,255,.18)}.seat.t:hover rect{fill:rgba(255,255,255,.07)}
+.seat.s rect{fill:var(--g);stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 8px var(--g))}
+.seat text{font:500 9px var(--mono);fill:#fff;pointer-events:none;text-anchor:middle}.seat.s text{fill:#032312}
+.legend{display:flex;gap:1.1rem;margin-top:.8rem;font:500 .6rem var(--mono);letter-spacing:.14em;color:var(--mute);flex-wrap:wrap}.legend i{display:inline-block;width:.8rem;height:.8rem;border:1px solid var(--g);margin-right:.4rem;vertical-align:-1px}
+.sum{padding:1.3rem}.sum h3{font:400 2.6rem var(--disp);letter-spacing:.05em;line-height:1}.sum dl{display:grid;grid-template-columns:auto 1fr;gap:.55rem 1rem;margin:1rem 0;font-size:.9rem}.sum dt{color:var(--mute);font:500 .6rem var(--mono);letter-spacing:.2em;text-transform:uppercase;align-self:center}
+.view{position:relative;margin-top:1.4rem;max-width:880px;aspect-ratio:16/8.5;border:10px solid #0a1510;border-radius:34px;overflow:hidden;box-shadow:0 0 0 1px var(--line),0 30px 80px rgba(0,0,0,.6)}
+.view img{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;animation:pan 14s ease-in-out infinite alternate}
+@keyframes pan{to{transform:translateX(-4%) scale(1.04)}}
+.view span{position:absolute;left:1rem;bottom:1rem;font:500 .66rem var(--mono);letter-spacing:.2em;background:rgba(0,0,0,.55);padding:.5rem .8rem}
+.ticket{display:grid;grid-template-columns:1fr auto;max-width:860px;margin-top:1.4rem;background:linear-gradient(135deg,#0b2417,#06140d);border:1px solid rgba(52,226,122,.5);position:relative;box-shadow:0 0 70px rgba(52,226,122,.18)}
+@media(max-width:700px){.ticket{grid-template-columns:1fr}}
+.tm{padding:1.6rem}.tm .rt{font:400 3.2rem var(--disp);letter-spacing:.06em}.tm .rt em{color:var(--g);font-style:normal}
+.tg{display:grid;grid-template-columns:repeat(3,auto);gap:1rem 1.6rem;margin-top:1rem;justify-content:start}.tg b{display:block;font:400 1.8rem var(--disp);letter-spacing:.06em}.tg span{font:500 .58rem var(--mono);letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
+.ts{padding:1.6rem;border-left:2px dashed rgba(52,226,122,.4);display:grid;place-items:center;gap:.8rem}
+@media(max-width:700px){.ts{border-left:0;border-top:2px dashed rgba(52,226,122,.4)}}
+#qr{background:#fff;padding:6px;width:132px;height:132px;image-rendering:pixelated}
+.stamp{position:absolute;right:1.4rem;top:1rem;font:400 1.7rem var(--disp);letter-spacing:.2em;color:var(--g);border:2px solid var(--g);padding:.1rem .7rem;transform:rotate(-6deg);animation:st .6s .3s both}
+@keyframes st{from{transform:rotate(-6deg) scale(2.2);opacity:0}}
+.err{color:#ff7b7b;font-size:.85rem;min-height:1.2rem;margin-top:.6rem}
+.note{font:500 .58rem var(--mono);letter-spacing:.16em;color:var(--mute);margin-top:1.4rem;text-transform:uppercase}
+</style></head><body>
+<div class="bg" id="bg">
+<video id="iv" muted loop playsinline autoplay poster="a/aerial.jpg" src="a/intro.mp4" class="on"></video>
+<img src="a/platform.jpg" alt=""><img src="a/first.jpg" alt=""><img src="a/coach.jpg" alt=""><img src="a/standard.jpg" alt=""><img src="a/aerial.jpg" alt="">
+</div>
+<header><div class="logo"><i></i>LAGOS–IBADAN EXPRESS</div><div class="steps" id="steps"></div></header>
+<main>
+<section class="pane on" data-p="0"><div class="k">Concept · Rail booking</div><h1>LAGOS <em>→</em><br>IBADAN</h1>
+<p class="lead">Choose your departure, your class and the exact seat. Preview the window before you pay, then board with a pass that’s already in your pocket.</p>
+<div class="hero-f"><label>Travel date<input type="date" id="date"></label><label>Passenger<input id="pname" placeholder="Full name" autocomplete="name"></label><button class="btn" id="go0">Choose your seat</button></div><p class="err" id="e0"></p></section>
+
+<section class="pane" data-p="1"><div class="k">Step 1 · Departure</div><h2>PICK YOUR <em>TRAIN</em></h2><div class="list" id="deps"></div><div class="bar"><button class="ghost" data-back>Back</button><button class="btn" id="go1" disabled>Continue</button></div></section>
+
+<section class="pane" data-p="2"><div class="k">Step 2 · Class</div><h2>HOW DO YOU WANT TO <em>RIDE?</em></h2><div class="cls" id="cls"></div><div class="bar"><button class="ghost" data-back>Back</button><button class="btn" id="go2" disabled>Choose seat</button></div></section>
+
+<section class="pane" data-p="3"><div class="k">Step 3 · Seat</div><h2>PICK YOUR <em>SEAT</em></h2>
+<div class="seatwrap"><div class="glass map"><div class="coaches" id="coaches"></div><div id="svg"></div><div class="legend"><span><i></i>Free</span><span><i style="background:var(--g)"></i>Yours</span><span><i style="border-color:#555;background:#222"></i>Taken</span><span>A / D = window</span></div></div>
+<div class="glass sum"><div class="k">Your seat</div><h3 id="sl">—</h3><dl id="sd"></dl><button class="btn" id="go3" disabled>See my view</button></div></div>
+<div class="bar"><button class="ghost" data-back>Back</button></div></section>
+
+<section class="pane" data-p="4"><div class="k">Step 4 · Your window</div><h2>THE VIEW FROM <em id="vs">—</em></h2>
+<div class="view"><img id="vimg" src="a/standard.jpg" alt="Window view from your seat"><span id="vcap">WINDOW · LEFT SIDE</span></div>
+<div class="bar"><button class="ghost" data-back>Change seat</button><button class="btn" id="go4">Confirm &amp; book</button></div></section>
+
+<section class="pane" data-p="5"><div class="k">Booked</div><h2>YOU’RE <em>ON BOARD.</em></h2>
+<div class="ticket"><div class="stamp">BOOKED</div><div class="tm"><div class="k" id="tref">—</div><div class="rt">LAGOS <em>→</em> IBADAN</div><div class="tg" id="tg"></div></div><div class="ts"><canvas id="qr" width="33" height="33"></canvas><span class="k" style="margin:0">Scan at gate</span></div></div>
+<div class="bar"><button class="btn" id="again">Book another</button><button class="ghost" onclick="print()">Print pass</button></div><p class="note">Demo timetable and fares · seats are saved in this browser only</p></section>
+</main>
+<script>
+(()=>{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const bgs=[...$('#bg').children]; // 0 video,1 platform,2 first,3 coach,4 standard,5 aerial
+const BGSTEP=[0,1,null,3,null,5];
+const DEPS=[['06:30','Morning Express','Non-stop · 2 stops'],['09:00','Mid-morning','2 stops'],['12:30','Midday','2 stops'],['16:00','Afternoon','2 stops'],['18:30','Evening Express','Non-stop']];
+const CLS=[['Standard','Comfortable 2+2 seating, large windows, power at every seat.',6000,'a/standard.jpg'],['Business','Extra legroom, quiet carriage and complimentary water and snack.',9000,'a/standard.jpg'],['First','Leather recliners, tables for four, lounge lighting and meal service.',14000,'a/first.jpg']];
+const ROWS=14,COACHES=['C1','C2','C3','C4'];
+let S={}, step=0;const reset=()=>{S={date:'',name:'',dep:null,cls:null,coach:'C1',seat:null}};reset();
+const naira=n=>'₦'+n.toLocaleString('en-NG');
+const st=$('#steps');for(let i=0;i<6;i++){const b=document.createElement('button');b.setAttribute('aria-label','Step '+(i+1));b.onclick=()=>{if(i<step&&step<5)show(i)};st.appendChild(b)}
+function show(n){step=n;$$('.pane').forEach(p=>p.classList.toggle('on',+p.dataset.p===n));
+[...st.children].forEach((b,i)=>{b.className=i===n?'on':i<n?'ok':'';b.disabled=!(i<n&&n<5)});
+let bi=BGSTEP[n];if(n===2)bi=2;if(n===4)bi=S.cls===2?2:4;
+bgs.forEach((e,i)=>e.classList.toggle('on',i===bi));
+const v=$('#iv');if(bi===0)v.play&&v.play().catch(()=>{});else v.pause&&v.pause();
+$('.pane.on').scrollIntoView&&0;document.querySelector('main').scrollTo(0,0)}
+// 0
+const d=$('#date'),t=new Date();t.setDate(t.getDate()+1);d.min=new Date().toISOString().slice(0,10);d.value=t.toISOString().slice(0,10);
+$('#go0').onclick=()=>{if(!d.value)return $('#e0').textContent='Pick a travel date.';if($('#pname').value.trim().length<2)return $('#e0').textContent='Enter the passenger’s name.';
+$('#e0').textContent='';S.date=d.value;S.name=$('#pname').value.trim();show(1)};
+// 1
+$('#deps').innerHTML=DEPS.map((x,i)=>`<button class="dep glass" data-i="${i}"><b>${x[0]}</b><div>${x[1]}<small>${x[2]}</small></div><span>DEMO</span></button>`).join('');
+$('#deps').onclick=e=>{const b=e.target.closest('.dep');if(!b)return;S.dep=+b.dataset.i;$$('.dep').forEach(x=>x.classList.toggle('sel',x===b));$('#go1').disabled=false};
+$('#go1').onclick=()=>show(2);
+// 2
+$('#cls').innerHTML=CLS.map((c,i)=>`<button class="cc glass" data-i="${i}"><img src="${c[3]}" alt="${c[0]} class cabin" loading="lazy"><div><h3>${c[0]}</h3><p>${c[1]}</p><span>${naira(c[2])} · per seat</span></div></button>`).join('');
+$('#cls').onclick=e=>{const b=e.target.closest('.cc');if(!b)return;S.cls=+b.dataset.i;S.seat=null;$$('.cc').forEach(x=>x.classList.toggle('sel',x===b));$('#go2').disabled=false};
+$('#go2').onclick=()=>{drawSeats();show(3)};
+// 3 seats
+const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+const taken=(coach,id)=>{const base=S.cls===2?.5:S.cls===1?.4:.33;return (hash(S.date+S.dep+S.cls+coach+id)%1000)/1000<base};
+let BK=[];try{BK=JSON.parse(localStorage.getItem('rail_bk')||'[]')}catch(e){}
+const mine=(coach,id)=>BK.some(b=>b.date===S.date&&b.dep===S.dep&&b.cls===S.cls&&b.coach===coach&&b.seat===id);
+$('#coaches').innerHTML=COACHES.map(c=>`<button data-c="${c}">${CLS[0]&&c}</button>`).join('');
+$('#coaches').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.coach=b.dataset.c;S.seat=null;drawSeats()};
+function drawSeats(){$$('#coaches button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.coach));
+const W=40,G=8,AIS=34,x0=26,y0=34,cols=['A','B','C','D'];let o='';
+const xs=[x0,x0+W+G,x0+2*(W+G)+AIS,x0+3*(W+G)+AIS],w=xs[3]+W+x0,h=y0+ROWS*(W+G)+16;
+o+=`<svg viewBox="0 0 ${w} ${h}" width="${w}" role="group" aria-label="Seat map"><text x="${w/2}" y="16" fill="#34e27a" font-family="JetBrains Mono" font-size="9" text-anchor="middle" letter-spacing="3">▲ FRONT OF COACH ${S.coach}</text>`;
+for(let r=1;r<=ROWS;r++)cols.forEach((c,ci)=>{const id=r+c,tk=taken(S.coach,id)||mine(S.coach,id),y=y0+(r-1)*(W+G);
+o+=`<g class="seat ${tk?'t':''} ${S.seat===id?'s':''}" data-id="${id}"><rect x="${xs[ci]}" y="${y}" width="${W}" height="${W}" rx="9"/><text x="${xs[ci]+W/2}" y="${y+W/2+3}">${id}</text></g>`});
+o+='</svg>';$('#svg').innerHTML=o;sumSeat()}
+$('#svg').onclick=e=>{const g=e.target.closest('.seat');if(!g||g.classList.contains('t'))return;S.seat=g.dataset.id;drawSeats()};
+function sumSeat(){$('#sl').textContent=S.seat?`${S.coach} · ${S.seat}`:'—';
+const pos=S.seat?(/[AD]$/.test(S.seat)?'Window':'Aisle'):'—';
+$('#sd').innerHTML=`<dt>Class</dt><dd>${CLS[S.cls][0]}</dd><dt>Train</dt><dd>${DEPS[S.dep][0]} · ${DEPS[S.dep][1]}</dd><dt>Date</dt><dd>${S.date}</dd><dt>Position</dt><dd>${pos}</dd><dt>Fare</dt><dd>${naira(CLS[S.cls][2])}</dd>`;$('#go3').disabled=!S.seat}
+$('#go3').onclick=()=>{$('#vs').textContent=S.seat;$('#vimg').src=S.cls===2?'a/first.jpg':'a/standard.jpg';
+const w=/[AD]$/.test(S.seat);$('#vcap').textContent=(w?'WINDOW SEAT '+S.seat+' · ':'AISLE SEAT '+S.seat+' · VIEW ACROSS THE CARRIAGE · ')+CLS[S.cls][0].toUpperCase();show(4)};
+// 4 → 5
+$('#go4').onclick=()=>{const ref='LIE-'+hash(S.date+S.name+S.seat+Date.now()).toString(36).toUpperCase().slice(0,6);
+BK.push({ref,date:S.date,dep:S.dep,cls:S.cls,coach:S.coach,seat:S.seat,name:S.name});try{localStorage.setItem('rail_bk',JSON.stringify(BK))}catch(e){}
+$('#tref').textContent='BOARDING PASS · '+ref;
+const cell=(l,v)=>`<div><b>${v}</b><span>${l}</span></div>`;
+$('#tg').innerHTML=cell('Passenger',S.name.toUpperCase())+cell('Date',S.date)+cell('Departs',DEPS[S.dep][0])+cell('Class',CLS[S.cls][0])+cell('Coach',S.coach)+cell('Seat',S.seat)+cell('Fare',naira(CLS[S.cls][2]));
+qr(ref+S.name+S.seat);show(5)};
+function qr(seed){const c=$('#qr'),x=c.getContext('2d'),n=33;x.fillStyle='#fff';x.fillRect(0,0,n,n);x.fillStyle='#000';let h=hash(seed);
+const f=(ox,oy)=>{x.fillRect(ox,oy,7,7);x.fillStyle='#fff';x.fillRect(ox+1,oy+1,5,5);x.fillStyle='#000';x.fillRect(ox+2,oy+2,3,3)};
+for(let i=0;i<n;i++)for(let j=0;j<n;j++){if((i<8&&j<8)||(i<8&&j>n-9)||(i>n-9&&j<8))continue;h=Math.imul(h^(i*31+j),2654435761)>>>0;if(h&8)x.fillRect(i,j,1,1)}
+f(0,0);f(n-7,0);f(0,n-7)}
+$('#again').onclick=()=>{reset();$('#go1').disabled=true;$('#go2').disabled=true;$$('.dep,.cc').forEach(x=>x.classList.remove('sel'));$('#pname').value='';show(0)};
+$$('[data-back]').forEach(b=>b.onclick=()=>show(step-1));
+show(0);
+})();
+</script></body></html>
